@@ -1,0 +1,6 @@
+# Archivo de configuración de ejemplo para el Torneo de Komikan
+# Formato: clave=valor (líneas vacías y con # son ignoradas)
+
+min_delay_ms = 50
+max_delay_ms = 200
+seed = 12345
