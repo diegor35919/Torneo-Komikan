@@ -1,10 +1,11 @@
-# Torneo de Komikan Concurrente - Tarea 2 Sistemas Operativos
+# Torneo Komikan
 
 Implementación de un torneo concurrente en tiempo real para el juego tradicional mapuche Komikan, desarrollado en C++17 utilizando primitivas POSIX (`pthread`, mutexes y semáforos).
 
 ## Compilación
 
-Para compilar el proyecto:
+Para compilar el proyecto ejecutar el siguiente comando, el cual contiene todo lo necesario dentro para realizar la compilacion, pruebas unitarias.
+
 ```bash
 make torneo
 ```
