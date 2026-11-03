@@ -29,13 +29,17 @@ private:
     const GameConfig& config_;
     std::atomic<bool>& global_abort_;
 
-    sem_t available_tables_;          
+    sem_t available_tables_;
+    pthread_mutex_t tables_mutex_;
+    std::vector<char> table_busy_;          
 
     pthread_mutex_t threads_mutex_;
     std::vector<pthread_t> active_threads_;
 
     int next_match_id_{0};
-
+        
+    int acquireTable();
+    void releaseTable(int table_id);
     static void* tableThreadFunc(void* arg);
 };
 

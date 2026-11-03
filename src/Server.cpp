@@ -18,19 +18,41 @@ static std::string matchResultStr(MatchResult r) {
 Server::Server(int M, const GameConfig& config, std::atomic<bool>& global_abort)
     : M_(M),
       config_(config),
-      global_abort_(global_abort)
+      global_abort_(global_abort),
+      table_busy_(static_cast<std::size_t>(M), 0)
 {
     sem_init(&available_tables_, 0, static_cast<unsigned int>(M_));
+    pthread_mutex_init(&tables_mutex_, nullptr);
     pthread_mutex_init(&threads_mutex_, nullptr);
 }
 
 Server::~Server() {
     sem_destroy(&available_tables_);
+    pthread_mutex_destroy(&tables_mutex_);
     pthread_mutex_destroy(&threads_mutex_);
 }
 
+int Server::acquireTable() {
+    int id = -1;
+    pthread_mutex_lock(&tables_mutex_);
+    for (int i = 0; i < M_; ++i) {
+        if (!table_busy_[static_cast<std::size_t>(i)]) {
+            table_busy_[static_cast<std::size_t>(i)] = 1;
+            id = i;
+            break;
+        }
+    }
+    pthread_mutex_unlock(&tables_mutex_);
+    return id;
+}
+
+void Server::releaseTable(int table_id) {
+    pthread_mutex_lock(&tables_mutex_);
+    table_busy_[static_cast<std::size_t>(table_id)] = 0;
+    pthread_mutex_unlock(&tables_mutex_);
+}
+
 void Server::run(Matchmaker& matchmaker) {
-    int table_id_counter = 0;
 
     while (true) {
         PlayerPair pair;
@@ -53,7 +75,7 @@ void Server::run(Matchmaker& matchmaker) {
         }
 
         int match_id = ++next_match_id_;
-        int table_id = table_id_counter++ % M_;
+        int table_id = acquireTable();
 
         TableArgs* args = new TableArgs{};
         args->server = this;
@@ -74,6 +96,7 @@ void Server::run(Matchmaker& matchmaker) {
         if (pthread_create(&tid, nullptr, tableThreadFunc, args) != 0) {
             std::perror("pthread_create");
             delete args;
+            releaseTable(table_id);
             sem_post(&available_tables_);
             continue;
         }
@@ -101,6 +124,7 @@ void* Server::tableThreadFunc(void* arg) {
     int match_id    = targs->match_args.match_id;
     int player_puma = targs->match_args.player_puma_id;
     int player_dogs = targs->match_args.player_dogs_id;
+    int table_id    = targs->match_args.table_id;
 
     MatchResult result = run_game_match(targs->match_args);
 
@@ -110,6 +134,7 @@ void* Server::tableThreadFunc(void* arg) {
               << " → " << matchResultStr(result) << "\n"
               << std::flush;
 
+    server->releaseTable(table_id);
     sem_post(&server->available_tables_);
 
     delete targs;
