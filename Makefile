@@ -3,7 +3,8 @@ CXXFLAGS = -Wall -Wextra -std=c++17 -pthread -O2 -I include
 LDFLAGS  = -pthread
 
 SRCS_PART1 = src/main.cpp src/Config.cpp src/Matchmaker.cpp \
-             src/Server.cpp src/Signals.cpp src/MockGame.cpp
+             src/Server.cpp src/Signals.cpp \
+             src/Board.cpp src/GameEngine.cpp src/Referee.cpp
 
 TARGET = torneo
 
