@@ -13,6 +13,8 @@ struct GameConfig {
     int max_delay_ms{300};
     unsigned int seed{0};
     std::string initial_board{};
+    int abandon_side{0};
+    int abandon_after{0};
 };
 
 enum class MatchResult {

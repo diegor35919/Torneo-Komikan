@@ -85,6 +85,18 @@ void Config::loadFile(const std::string& path, GameConfig& cfg) {
             cfg.seed = static_cast<unsigned int>(std::stoul(value));
         } else if (key == "initial_board") {
             cfg.initial_board = value;
+        } else if (key == "abandon") {
+            auto colon = value.find(':');
+            std::string who = value.substr(0, colon);
+            if (who == "puma") {
+                cfg.abandon_side = 1;
+            } else if (who == "dogs") {
+                cfg.abandon_side = 2;
+            } else {
+                cfg.abandon_side = 0;
+                std::cerr << "[Config] Valor de 'abandon' invalido (use puma:N o dogs:N): '" << value << "'\n";
+            }
+            cfg.abandon_after = (colon == std::string::npos) ? 0 : std::stoi(value.substr(colon + 1));
         } else {
             std::cerr << "[Config] Clave desconocida ignorada: '" << key << "'\n";
         }
