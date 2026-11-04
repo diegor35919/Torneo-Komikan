@@ -62,7 +62,14 @@ void* GameEngine::dog_entry(void* arg) {
 }
 
 void GameEngine::puma_loop(unsigned int seed) {
+    int cycles = 0; 
     while (!referee_.should_stop()) {
+        if (config_.abandon_side == 1 && config_.abandon_after > 0 && cycles >= config_.abandon_after) {
+            referee_.declare(MatchResult::ABANDON_PUMA);
+            break;
+        }
+        cycles++;
+        
         pause_ms(random_delay(seed));
         if (referee_.should_stop()) {
             break;
@@ -126,7 +133,15 @@ int GameEngine::pick_dog_target(int pos, const std::vector<int>& options, unsign
 
 void GameEngine::dog_loop(int piece, int start, unsigned int seed) {
     int pos = start;
+    int cycles = 0; 
+    
     while (!referee_.should_stop()) {
+        if (config_.abandon_side == 2 && config_.abandon_after > 0 && cycles >= config_.abandon_after) {
+            referee_.declare(MatchResult::ABANDON_DOGS);
+            break;
+        }
+        cycles++; 
+        
         pause_ms(random_delay(seed));
         if (referee_.should_stop() || board_.owner(pos) != piece) {
             break;
